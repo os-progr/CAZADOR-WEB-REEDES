@@ -3,9 +3,14 @@ const cors = require('cors');
 const path = require('path');
 const { startAudit } = require('./services/hunter');
 
+const dotenv = require('dotenv');
+// Force load .env from current directory
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-require('dotenv').config();
+
+console.log('-------------------');
 
 const authRoutes = require('./routes/auth');
 
