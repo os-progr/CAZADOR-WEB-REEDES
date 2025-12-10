@@ -40,7 +40,7 @@ const CLIENT_BUILD_PATH = path.join(__dirname, '../client/dist');
 app.use(express.static(CLIENT_BUILD_PATH));
 
 // Cualquier otra ruta que no sea API, devuelve el index.html (para SPA routing)
-app.get('*', (req, res) => {
+app.get(/.*/, (req, res) => {
     res.sendFile(path.join(CLIENT_BUILD_PATH, 'index.html'));
 });
 
