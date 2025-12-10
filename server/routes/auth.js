@@ -14,17 +14,19 @@ router.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        // Store recovery key (in a real app, hash this too!)
-        const stmt = db.prepare('INSERT INTO users (username, email, password, recovery_key) VALUES (?, ?, ?, ?)');
-        const info = stmt.run(username, email, hashedPassword, recovery_key);
 
-        const token = jwt.sign({ id: info.lastInsertRowid, email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        // Use generic Adapter method
+        const user = await db.createUser(username, email, hashedPassword, recovery_key);
 
-        res.status(201).json({ success: true, token, user: { id: info.lastInsertRowid, username, email } });
+        const token = jwt.sign({ id: user.lastInsertRowid, email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+        res.status(201).json({ success: true, token, user: { id: user.lastInsertRowid, username, email } });
     } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        // Simple error check (generic)
+        if (error.message && (error.message.includes('unique') || error.message.includes('UNIQUE'))) {
             return res.status(400).json({ error: 'Email or Username already exists' });
         }
+        console.error(error);
         res.status(500).json({ error: 'Database error' });
     }
 });
@@ -34,11 +36,9 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-        const user = stmt.get(email);
+        const user = await db.findUserByEmail(email);
 
         if (!user) {
-            // Anti-timing attack (fake comparison)
             await bcrypt.compare('dummy', '$2b$10$dummyhashdummyhashdummyhashdummyhashdummyhashdummyhash');
             return res.status(400).json({ error: 'Invalid credentials' });
         }
@@ -52,6 +52,7 @@ router.post('/login', async (req, res) => {
         res.json({ success: true, token, user: { id: user.id, username: user.username, email: user.email, is_premium: user.is_premium } });
 
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -65,16 +66,14 @@ router.post('/reset-password', async (req, res) => {
     }
 
     try {
-        const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-        const user = stmt.get(email);
+        const user = await db.findUserByEmail(email);
 
         if (!user || user.recovery_key !== recovery_key) {
             return res.status(400).json({ error: 'Invalid Email or Recovery Key' });
         }
 
         const hashedPassword = await bcrypt.hash(new_password, 10);
-        const updateStmt = db.prepare('UPDATE users SET password = ? WHERE id = ?');
-        updateStmt.run(hashedPassword, user.id);
+        await db.updateUserPassword(user.id, hashedPassword);
 
         res.json({ success: true, message: 'Password reset successfully' });
 
