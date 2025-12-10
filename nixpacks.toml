@@ -1,0 +1,21 @@
+[phases.setup]
+nixPkgs = [
+    "nodejs_18",
+    "npm",
+    "chromium",
+    "nss",
+    "freetype",
+    "freetype-wZn5",
+    "fontconfig",
+    "dejavu_fonts"
+]
+
+[phases.build]
+cmds = [
+    "npm run install-all",
+    "npm run build-client",
+    "npx playwright install chromium"
+]
+
+[start]
+cmd = "npm start"
