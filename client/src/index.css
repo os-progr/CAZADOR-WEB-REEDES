@@ -7,7 +7,7 @@
   --danger: #ff0055;
   --text-main: #ffffff;
   --text-muted: #8b9bb4;
-  
+
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   color-scheme: dark;
@@ -20,7 +20,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background-color: var(--bg-deep);
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(98, 0, 255, 0.15) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 40%);
   color: var(--text-main);
@@ -42,7 +42,7 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  box-shadow: 0 8px 32px 0 rgba(189, 70, 70, 0.37);
   padding: 2rem;
   transition: all 0.3s ease;
 }
@@ -58,6 +58,7 @@ h1 {
   font-weight: 800;
   background: linear-gradient(to right, #fff, #b4b4b4);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
   letter-spacing: -1px;
@@ -154,9 +155,23 @@ button:disabled {
   position: relative;
 }
 
-.score-high { border-color: var(--success); color: var(--success); box-shadow: 0 0 30px rgba(0, 255, 157, 0.2); }
-.score-med { border-color: #ffd700; color: #ffd700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); }
-.score-low { border-color: var(--danger); color: var(--danger); box-shadow: 0 0 30px rgba(255, 0, 85, 0.2); }
+.score-high {
+  border-color: var(--success);
+  color: var(--success);
+  box-shadow: 0 0 30px rgba(0, 255, 157, 0.2);
+}
+
+.score-med {
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.score-low {
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+}
 
 .console-log {
   font-family: 'Fira Code', monospace;
@@ -177,4 +192,94 @@ button:disabled {
 .metric-value {
   font-weight: 700;
   color: #fff;
+}
+
+/* Yape & Payment Styles */
+.paywall-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 5, 16, 0.95);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.yape-card {
+  background: linear-gradient(135deg, #742284 0%, #a632c2 100%);
+  width: 100%;
+  max-width: 400px;
+  padding: 2.5rem;
+  border-radius: 24px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(116, 34, 132, 0.4);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.yape-logo {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  letter-spacing: -1px;
+}
+
+.yape-qr-box {
+  background: white;
+  padding: 1rem;
+  border-radius: 16px;
+  margin: 1.5rem 0;
+  display: inline-block;
+}
+
+.qr-placeholder {
+  width: 180px;
+  height: 180px;
+  background-color: #000;
+  /* Replaced complex gradient with solid for stability */
+  border: 4px solid #fff;
+}
+
+.plan-badge {
+  background: #00ffbf;
+  color: #4a1555;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+}
+
+.btn-yape {
+  background: #00ffbf;
+  color: #4a1555;
+  width: 100%;
+  padding: 1rem;
+  font-weight: 800;
+  border: none;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.btn-yape:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 255, 191, 0.3);
+}
+
+.lock-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.3);
 }
