@@ -43,7 +43,7 @@ export default function Login({ onLogin }) {
             }
         }
 
-        const url = `http://localhost:3000${endpoint}`
+        const url = `${endpoint}`
 
         try {
             const res = await fetch(url, {
