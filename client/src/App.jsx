@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Login from './Login'
+import { generateCertificate } from './certificateGenerator'
 
 function App() {
   const [url, setUrl] = useState('')
@@ -14,6 +15,9 @@ function App() {
   // Monetization State
   const [isPremium, setIsPremium] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
+
+  // PDF Generation State
+  const [downloading, setDownloading] = useState(false)
 
   // Check Local Auth on Load
   useEffect(() => {
@@ -51,7 +55,6 @@ function App() {
   const handleAudit = async () => {
     if (!url) return
 
-    // PAYWALL LOGIC: Block if not premium
     if (!isPremium) {
       setShowPaywall(true)
       return
@@ -88,12 +91,23 @@ function App() {
   }
 
   const activateSubscription = () => {
-    // In a real app, verify backend webhook here
     localStorage.setItem('hunter_premium', 'active')
     setIsPremium(true)
     setShowPaywall(false)
     alert("Payment Verified! Subscription Active for 6 Months.")
   }
+
+  const handleDownloadReport = async () => {
+    setDownloading(true);
+    try {
+      await generateCertificate(result, user.username);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate PDF report");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const getScoreClass = (score) => {
     if (score >= 80) return 'score-high'
@@ -119,7 +133,6 @@ function App() {
             </p>
 
             <div className="yape-qr-box">
-              {/* Mock QR - In production use real QR image */}
               <div className="qr-placeholder"></div>
               <p style={{ color: '#333', marginTop: '0.5rem', fontWeight: 'bold' }}>SCAN TO PAY</p>
             </div>
@@ -233,6 +246,22 @@ function App() {
                 </ul>
               </div>
             )}
+
+            {/* Download Report Button */}
+            <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+              <button
+                onClick={handleDownloadReport}
+                disabled={downloading}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(90deg, #111, #222)',
+                  border: '1px solid var(--primary-accent)',
+                  color: 'var(--primary-accent)'
+                }}
+              >
+                {downloading ? 'GENERATING SECURE PDF...' : '⬇ DOWNLOAD FORENSIC CERTIFICATE (PDF)'}
+              </button>
+            </div>
           </div>
         )}
       </main>
