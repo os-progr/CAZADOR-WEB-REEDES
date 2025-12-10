@@ -26,7 +26,7 @@ router.get('/google/callback',
         // Redirect to frontend (root) with query params
         // In production this would be the actual domain
         const redirectUrl = process.env.NODE_ENV === 'production'
-            ? '/?token=' + token + '&user=' + userStr
+            ? 'https://el-cazador-production.up.railway.app' + '/?token=' + token + '&user=' + userStr
             : 'http://localhost:5173/?token=' + token + '&user=' + userStr;
 
         res.redirect(redirectUrl);
