@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Login from './Login'
 
 function App() {
   const [url, setUrl] = useState('')
@@ -6,15 +7,42 @@ function App() {
   const [result, setResult] = useState(null)
   const [logs, setLogs] = useState([])
 
+  // Auth State
+  const [user, setUser] = useState(null)
+  const [showLogin, setShowLogin] = useState(true)
+
   // Monetization State
   const [isPremium, setIsPremium] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
 
-  // Check subscription on load (Mock persistence)
+  // Check Local Auth on Load
   useEffect(() => {
-    const sub = localStorage.getItem('hunter_premium')
-    if (sub === 'active') setIsPremium(true)
+    const savedUser = localStorage.getItem('hunter_user')
+    const savedToken = localStorage.getItem('hunter_token')
+
+    if (savedUser && savedToken) {
+      setUser(JSON.parse(savedUser))
+      setShowLogin(false)
+      const sub = localStorage.getItem('hunter_premium')
+      if (sub === 'active') setIsPremium(true)
+    }
   }, [])
+
+  const handleLoginSuccess = (userData, token) => {
+    localStorage.setItem('hunter_user', JSON.stringify(userData))
+    localStorage.setItem('hunter_token', token)
+    setUser(userData)
+    setShowLogin(false)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('hunter_user')
+    localStorage.removeItem('hunter_token')
+    setUser(null)
+    setShowLogin(true)
+    setResult(null)
+    setUrl('')
+  }
 
   const addLog = (msg) => {
     setLogs(prev => [...prev, `> ${msg}`])
@@ -34,7 +62,7 @@ function App() {
     setLogs(['Initiating Hunter Protocol...', 'Establishing secure connection...'])
 
     try {
-      const response = await fetch('http://localhost:3000/api/audit', {
+      const response = await fetch('/api/audit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetUrl: url })
@@ -71,6 +99,10 @@ function App() {
     if (score >= 80) return 'score-high'
     if (score >= 60) return 'score-med'
     return 'score-low'
+  }
+
+  if (showLogin) {
+    return <Login onLogin={handleLoginSuccess} />
   }
 
   return (
@@ -111,11 +143,20 @@ function App() {
       )}
 
       <header>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', alignItems: 'center' }}>
-          <h1>EL CAZADOR</h1>
-          {isPremium && <span className="plan-badge" style={{ marginBottom: 0, fontSize: '0.7rem' }}>PREMIUM ACTIVE</span>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div style={{ textAlign: 'left' }}>
+            <h1>EL CAZADOR</h1>
+            <p className="subtitle" style={{ marginBottom: 0 }}>Forensic Auditor</p>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontSize: '0.9rem', color: '#888', margin: 0 }}>Operador: {user.username}</p>
+            <button onClick={handleLogout} style={{ padding: '0.3rem 0.8rem', fontSize: '0.8rem', background: 'transparent', border: '1px solid #333', color: '#888', marginTop: '0.5rem' }}>
+              LOGOUT
+            </button>
+          </div>
         </div>
-        <p className="subtitle">Forensic Social Media Auditor</p>
+        {isPremium && <span className="plan-badge" style={{ marginTop: '1rem', fontSize: '0.7rem' }}>PREMIUM ACTIVE</span>}
       </header>
 
       <main>

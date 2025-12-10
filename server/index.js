@@ -5,9 +5,14 @@ const { startAudit } = require('./services/hunter');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+require('dotenv').config();
+
+const authRoutes = require('./routes/auth');
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 // Main Audit Endpoint
 app.post('/api/audit', async (req, res) => {
