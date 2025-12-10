@@ -34,8 +34,14 @@ app.post('/api/audit', async (req, res) => {
     }
 });
 
+const db = require('./config/db');
+
 app.get('/health', (req, res) => {
-    res.json({ status: 'Hunter is active', timestamp: new Date() });
+    res.json({
+        status: 'Hunter is active',
+        timestamp: new Date(),
+        database: db.type // 'postgres' or 'sqlite'
+    });
 });
 
 // Serve Frontend in Production

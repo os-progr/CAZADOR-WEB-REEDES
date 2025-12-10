@@ -16,6 +16,14 @@ class DBAdapter {
       console.log("🔌 Connected to PostgreSQL (Railway)");
       this.initPostgres();
     } else {
+
+      // CRITICAL WARNING FOR RAILWAY USERS
+      if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
+        console.warn("\n⚠️  WARNING: Running in Production/Railway but DATABASE_URL is missing!");
+        console.warn("⚠️  The app is falling back to SQLite (Ephemeral Storage).");
+        console.warn("⚠️  Your data will vanish on restart. Please attach a PostgreSQL Database.\n");
+      }
+
       const dbPath = path.resolve(__dirname, '../../database.sqlite');
       this.sqlite = new Database(dbPath);
       console.log("📂 Connected to SQLite (Local)");
