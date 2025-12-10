@@ -21,6 +21,32 @@ function App() {
 
   // Check Local Auth on Load
   useEffect(() => {
+    // Check for Google Auth Redirect params
+    const params = new URLSearchParams(window.location.search)
+    const tokenParam = params.get('token')
+    const userParam = params.get('user')
+
+    if (tokenParam && userParam) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(userParam))
+        localStorage.setItem('hunter_user', JSON.stringify(userData))
+        localStorage.setItem('hunter_token', tokenParam)
+        setUser(userData)
+        setShowLogin(false)
+
+        // Clear URL
+        window.history.replaceState({}, document.title, "/")
+
+        // Restore Premium if saved (or checks backend)
+        const sub = localStorage.getItem('hunter_premium')
+        if (sub === 'active') setIsPremium(true)
+        return // Stop here
+      } catch (e) {
+        console.error("Failed to parse social login data", e)
+      }
+    }
+
+    // Check Local Storage
     const savedUser = localStorage.getItem('hunter_user')
     const savedToken = localStorage.getItem('hunter_token')
 

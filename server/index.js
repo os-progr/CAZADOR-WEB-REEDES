@@ -9,8 +9,11 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 
+const passport = require('./config/passport');
+
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 app.use('/api/auth', authRoutes);
 

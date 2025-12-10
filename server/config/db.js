@@ -16,7 +16,6 @@ class DBAdapter {
       console.log("🔌 Connected to PostgreSQL (Railway)");
       this.initPostgres();
     } else {
-
       // CRITICAL WARNING FOR RAILWAY USERS
       if (process.env.RAILWAY_ENVIRONMENT || process.env.NODE_ENV === 'production') {
         console.warn("\n⚠️  WARNING: Running in Production/Railway but DATABASE_URL is missing!");
@@ -39,12 +38,18 @@ class DBAdapter {
                 email TEXT UNIQUE,
                 password TEXT,
                 recovery_key TEXT,
+                google_id TEXT,
                 is_premium BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `;
     try {
       await this.pool.query(query);
+      // Alter table for existing users
+      try {
+        await this.pool.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT');
+      } catch (e) { /* ignore */ }
+
       console.log("✅ Postgres Tables Initialized");
     } catch (err) {
       console.error("Failed to init Postgres tables:", err);
@@ -59,10 +64,19 @@ class DBAdapter {
                 email TEXT UNIQUE,
                 password TEXT,
                 recovery_key TEXT,
+                google_id TEXT,
                 is_premium BOOLEAN DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `);
+    try {
+      // Check if column exists, if not add it (sqlite doesn't have IF NOT EXISTS for ADD COLUMN in older versions)
+      const columns = this.sqlite.prepare("PRAGMA table_info(users)").all();
+      const hasGoogleId = columns.some(c => c.name === 'google_id');
+      if (!hasGoogleId) {
+        this.sqlite.exec('ALTER TABLE users ADD COLUMN google_id TEXT');
+      }
+    } catch (e) { /* ignore */ }
   }
 
   // Generic Query Method
@@ -72,6 +86,15 @@ class DBAdapter {
       return res.rows[0];
     } else {
       return this.sqlite.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    }
+  }
+
+  async findUserByGoogleId(googleId) {
+    if (this.type === 'postgres') {
+      const res = await this.pool.query('SELECT * FROM users WHERE google_id = $1', [googleId]);
+      return res.rows[0];
+    } else {
+      return this.sqlite.prepare('SELECT * FROM users WHERE google_id = ?').get(googleId);
     }
   }
 
@@ -85,6 +108,20 @@ class DBAdapter {
     } else {
       const stmt = this.sqlite.prepare('INSERT INTO users (username, email, password, recovery_key) VALUES (?, ?, ?, ?)');
       const info = stmt.run(username, email, hash, recoveryKey);
+      return { lastInsertRowid: info.lastInsertRowid, username, email };
+    }
+  }
+
+  async createGoogleUser(username, email, googleId) {
+    if (this.type === 'postgres') {
+      const res = await this.pool.query(
+        'INSERT INTO users (username, email, google_id) VALUES ($1, $2, $3) RETURNING id, username, email',
+        [username, email, googleId]
+      );
+      return { lastInsertRowid: res.rows[0].id, ...res.rows[0] };
+    } else {
+      const stmt = this.sqlite.prepare('INSERT INTO users (username, email, google_id) VALUES (?, ?, ?)');
+      const info = stmt.run(username, email, googleId);
       return { lastInsertRowid: info.lastInsertRowid, username, email };
     }
   }

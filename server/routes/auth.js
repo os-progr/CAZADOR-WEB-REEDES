@@ -2,7 +2,36 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
 const db = require('../config/db');
+
+// Google Auth Routes
+router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+
+router.get('/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login', session: false }),
+    (req, res) => {
+        // Successful authentication, redirect with token
+        const user = req.user;
+        const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+        // Encode user info to pass to frontend
+        const userStr = encodeURIComponent(JSON.stringify({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            is_premium: user.is_premium
+        }));
+
+        // Redirect to frontend (root) with query params
+        // In production this would be the actual domain
+        const redirectUrl = process.env.NODE_ENV === 'production'
+            ? '/?token=' + token + '&user=' + userStr
+            : 'http://localhost:5173/?token=' + token + '&user=' + userStr;
+
+        res.redirect(redirectUrl);
+    }
+);
 
 // Register
 router.post('/register', async (req, res) => {
